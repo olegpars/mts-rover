@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Ровер для МТС 5G</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Просмотровый зал: тёмный экран, ролики главные, текст - короткие подписи на полях. Оранжевый - колёса ровера, зелёный - лист жука. */
+:root {
+  --bg: #f3f2ef;
+  --surface: #e8e6e1;
+  --fg: #1b1c1e;
+  --muted: #5f5d58;
+  --line: #d3d0c9;
+  --accent: #d2601a;
+  --leaf: #4f7d22;
+  --screen: #0d0e10;
+  --display: "Unbounded", "Onest", system-ui, sans-serif;
+  --body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131416; --surface: #1c1d20; --fg: #ecebe7; --muted: #9c9a94;
+    --line: #2c2d31; --accent: #f08236; --leaf: #9ccc5c; --screen: #000;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131416; --surface: #1c1d20; --fg: #ecebe7; --muted: #9c9a94;
+  --line: #2c2d31; --accent: #f08236; --leaf: #9ccc5c; --screen: #000;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 48px 72px;
+  display: grid;
+  gap: 72px;
+}
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.08; }
+h2 { font-size: clamp(21px, 2.6vw, 28px); line-height: 1.2; }
+h3 { font-family: var(--body); font-weight: 600; font-size: 19px; margin: 0; }
+p { margin: 0; max-width: 64ch; }
+.label {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stack { display: grid; gap: 16px; }
+
+/* Шапка */
+header { display: grid; gap: 22px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.meta span { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meta span b { color: var(--fg); font-weight: 500; }
+.lead { font-size: clamp(18px, 2vw, 21px); line-height: 1.5; max-width: 60ch; }
+.lead em { font-style: normal; color: var(--accent); }
+
+/* Экран */
+.screen {
+  background: var(--screen);
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+}
+.screen video { width: 100%; height: 100%; display: block; object-fit: contain; background: var(--screen); }
+
+/* Основной ролик */
+.main-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.main-text { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 40px; }
+.main-text p { min-width: 0; }
+
+/* Жук */
+.beetle {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: center;
+  padding-block: 32px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.beetle figure { margin: 0; display: grid; gap: 10px; }
+.beetle img { width: 100%; border-radius: 6px; display: block; }
+.beetle figcaption { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.beetle h2 { color: var(--leaf); }
+.seek {
+  justify-self: start;
+  font: 500 15px var(--body);
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--leaf);
+  border-radius: 999px;
+  padding: 9px 18px;
+  cursor: pointer;
+}
+.seek:hover { background: color-mix(in srgb, var(--leaf) 14%, transparent); }
+.seek:focus-visible, video:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.tc { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Три варианта */
+.variants { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.variant { display: grid; grid-template-rows: auto auto 1fr; gap: 12px; align-content: start; min-width: 0; }
+.variant .row { display: flex; align-items: baseline; gap: 10px; }
+.variant .n { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+.variant p { font-size: 15.5px; color: var(--muted); }
+.tag {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Косяки */
+.flaws { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px 48px; }
+.flaws ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.flaws li { padding-left: 22px; position: relative; max-width: 62ch; }
+.flaws li::before { content: "×"; position: absolute; left: 0; color: var(--muted); font-family: var(--mono); }
+
+/* Вопросы */
+.questions { background: var(--surface); border-radius: 8px; padding: clamp(24px, 4vw, 44px); display: grid; gap: 28px; }
+.questions ol { margin: 0; padding: 0; list-style: none; counter-reset: q; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.questions li { counter-increment: q; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; min-width: 0; }
+.questions li::before { content: counter(q); grid-row: span 2; font-family: var(--display); font-size: 26px; line-height: 1; color: var(--accent); }
+.questions li b { font-weight: 600; }
+.questions li span { color: var(--muted); font-size: 15.5px; }
+
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; }
+
+@media (max-width: 860px) {
+  .variants { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .beetle { grid-template-columns: minmax(0, 1fr); }
+  .flaws { grid-template-columns: minmax(0, 1fr); }
+  .questions ol { grid-template-columns: minmax(0, 1fr); }
+  .wrap { gap: 56px; padding-block: 32px 56px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="label">МТС 5G · авторская часть · черновики</div>
+    <h1>Ровер вместо дрона</h1>
+    <p class="lead">Это не финальные ролики, а раскадровка в движении. Я специально не чистил артефакты: сейчас важно понять, в ту ли сторону я иду. Смотрите, пожалуйста, <em>на ритм, героев и настроение</em>, а не на вывески и светофоры.</p>
+    <div class="meta">
+      <span>отрезок ролика <b>3-13 с</b></span>
+      <span>хронометраж <b>10 с</b></span>
+      <span>формат <b>16:9</b></span>
+      <span>качество <b>черновое, 480p</b></span>
+    </div>
+  </header>
+
+  <section class="stack" aria-labelledby="main-title">
+    <div class="main-head">
+      <h2 id="main-title">Основной ролик</h2>
+      <span class="label">основа для чистовой версии</span>
+    </div>
+    <div class="screen">
+      <video id="main-video" src="video/main.mp4" poster="video/main.jpg" controls playsinline preload="metadata"></video>
+    </div>
+    <div class="main-text">
+      <p>Этот ролик я бы выбрал основным и довёл до чистовой версии.</p>
+      <p>Дронов по брифу больше нет, поэтому подарок через весь город везёт ровер-курьер. От упаковки до двери квартиры ровно к моменту, когда на торте горят свечи.</p>
+    </div>
+  </section>
+
+  <section class="beetle" aria-labelledby="beetle-title">
+    <figure>
+      <img src="video/beetle.jpg" alt="Жук несёт зелёный лист по велодорожке у колеса ровера" width="854" height="480">
+      <figcaption><span class="tc">00:03</span> · жук с листом у колеса ровера ждёт сигнала</figcaption>
+    </figure>
+    <div class="stack">
+      <span class="label">чего не было в первых роликах</span>
+      <h2 id="beetle-title">Жук с листиком</h2>
+      <p>У перехода рядом с колесом ровера стоит жук со своим листом и вместе с ровером ждёт сигнала. Это прямая отсылка к моему аккаунту, где живут такие же маленькие существа.</p>
+      <p>Он достаточно незаметен, чтобы не перетягивать внимание с истории. Для меня жук - подпись внутри кадра: по таким маленьким существам меня узнают, это и есть мой художественный язык.</p>
+      <button class="seek" type="button" id="seek-beetle">Показать в ролике, <span class="tc">00:03</span></button>
+    </div>
+  </section>
+
+  <section class="stack" aria-labelledby="variants-title" style="gap: 28px;">
+    <div class="stack" style="gap: 12px;">
+      <h2 id="variants-title">Ещё три варианта</h2>
+      <p>Эти ролики я сделал заново: взял то, что вам понравилось в прошлый раз, и учёл новые комментарии. Дронов больше нет, вместо них ровер-курьер. В одном он везёт подарок, в другом лекарство, в третьем время на мгновение замедляется. Если выбирать замену основному ролику, я бы взял «Секунду».</p>
+    </div>
+    <div class="variants">
+      <article class="variant">
+        <div class="row"><span class="n">1</span><h3>Подарок</h3></div>
+        <div class="screen"><video src="video/gift.mp4" poster="video/gift.jpg" controls playsinline preload="metadata"></video></div>
+        <p>Ровер забирает подарок, едет через город вместе с потоком и привозит его девочке на день рождения.</p>
+      </article>
+      <article class="variant">
+        <div class="row"><span class="n">2</span><h3>Лекарство</h3></div>
+        <div class="screen"><video src="video/medicine.mp4" poster="video/medicine.jpg" controls playsinline preload="metadata"></video></div>
+        <p>Та же механика, но ровер везёт лекарство бабушке. Спокойная доставка к нужному часу, без образа скорой.</p>
+      </article>
+      <article class="variant">
+        <div class="row"><span class="n">3</span><h3>Секунда</h3><span class="tag">второй выбор</span></div>
+        <div class="screen"><video src="video/second.mp4" poster="video/second.jpg" controls playsinline preload="metadata"></video></div>
+        <p>Вариант с замедлением времени: голуби у фонтана зависают в воздухе, город на мгновение замирает и едет дальше.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="flaws" aria-labelledby="flaws-title">
+    <div class="stack" style="gap: 12px;">
+      <h2 id="flaws-title">Что я пока не правил</h2>
+      <p style="color: var(--muted);">Эти косяки я вижу и уберу в чистовой версии. На решение по направлению они не влияют.</p>
+    </div>
+    <ul>
+      <li>Город местами меньше похож на настоящий.</li>
+      <li>В деталях есть артефакты генерации.</li>
+      <li>Светофоры пока работают не по правилам: где-то зелёный загорается не тем, кто ждёт, где-то сигналы не сходятся между кадрами. Их логику я соберу в чистовой версии.</li>
+    </ul>
+  </section>
+
+  <section class="questions" aria-labelledby="q-title">
+    <div class="stack" style="gap: 10px;">
+      <h2 id="q-title">Что мне важно от вас услышать</h2>
+      <p>Прежде чем двигаться дальше, хочу проговорить с вами четыре вещи.</p>
+    </div>
+    <ol>
+      <li><b>Динамика</b><span>Подходит ли такой темп, монтаж и движение камеры?</span></li>
+      <li><b>Жук</b><span>Оставляем отсылку ко мне в кадре?</span></li>
+      <li><b>Ровер</b><span>Подходит ли такой облик и характер ровера?</span></li>
+      <li><b>Сюжет</b><span>Что ближе: подарок или лекарство? С замедлением времени или без?</span></li>
+    </ol>
+    <p>И любые «нравится», «не нравится» и «хочется больше вот этого» тоже очень помогут. После ваших ответов я доведу основной ролик до чистовой версии.</p>
+  </section>
+
+  <footer>
+    <span>Олег Парс</span>
+    <span>Черновые ролики, октябрь 2026</span>
+  </footer>
+
+</div>
+
+<script>
+document.getElementById('seek-beetle').addEventListener('click', function () {
+  var v = document.getElementById('main-video');
+  v.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  try { v.currentTime = 2.8; } catch (e) {}
+  var p = v.play();
+  if (p && p.catch) p.catch(function () {});
+});
+</script>
